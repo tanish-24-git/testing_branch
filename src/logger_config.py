@@ -1,3 +1,4 @@
+# src/logger_config.py
 import logging
 import os
 
@@ -18,7 +19,7 @@ def setup_logger():
 
     # File handler
     log_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assistant.log")
-    file_handler = logging.FileHandler(log_file)
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')  # Set encoding to utf-8
     file_handler.setLevel(logging.INFO)
     file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     file_handler.setFormatter(file_formatter)

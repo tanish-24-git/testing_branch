@@ -27,6 +27,8 @@ class ContextManager:
 
         self.selenium_driver = None
         if platform.system() == "Windows":
+            # Set Tesseract environment to suppress warnings
+            os.environ['TESSDATA_PREFIX'] = r"C:\Program Files\Tesseract-OCR\tessdata"
             pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
         elif platform.system() in ("Linux", "Darwin"):
             pass  # Assume tesseract is in PATH

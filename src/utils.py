@@ -1,6 +1,8 @@
+# src/utils.py
 import logging
 from sentence_transformers import SentenceTransformer
 import spacy
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,22 @@ def extract_intent_entities(command):
     doc = load_nlp()(command)
     intent = doc[0].lemma_ if doc else "unknown"  # Simple heuristic: first verb as intent
     entities = {ent.label_: ent.text for ent in doc.ents}
+
+    # Custom parsing for apps and URLs
+    if "open" in command.lower():
+        # Check for known apps
+        apps = ["notepad", "chrome", "edge", "firefox", "code", "calculator"]
+        for app in apps:
+            if app in command.lower():
+                entities["app"] = app
+                intent = "open_app"
+                break
+        # Check for URLs
+        url_match = re.search(r"(https?://[^\s]+)", command)
+        if url_match:
+            entities["url"] = url_match.group(1)
+            intent = "browser_control"
+
     return intent, entities
 
 def placeholder_function():
