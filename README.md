@@ -1,5 +1,5 @@
 # multi-mind-
-''' 
+```
 project_root/
 ├── README.md
 ├── config.yaml
@@ -50,4 +50,4 @@ project_root/
 │   │   ├── test_context_manager.py
 │   │   ├── test_llm_manager.py
 │   │   ├── test_voice_processor.py
-'''
+```
