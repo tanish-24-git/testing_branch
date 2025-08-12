@@ -1,3 +1,4 @@
+# src/main.py
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -16,10 +17,10 @@ from src.text_search import TextSearch
 from src.settings import settings
 from src.pipelines.pipelines import CommandPipeline
 from src.agents import AgenticAI
-from src.logger_config import setup_logger  # Add import
+from src.logger_config import setup_logger
 
 # Configure logging
-setup_logger()  # Initialize logging configuration
+setup_logger()
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
@@ -29,7 +30,7 @@ app = FastAPI(title="AI Assistant Backend")
 origins = [
     "http://localhost:3000",  # Flutter web dev
     "http://localhost:8080",  # Flutter mobile dev
-    "https://your-production-domain.com"  # Production frontend
+    "https://your-production-domain.com"
 ]
 
 app.add_middleware(
@@ -47,21 +48,31 @@ voice_processor = VoiceProcessor()
 text_search = TextSearch()
 agentic_ai = AgenticAI()
 
-# Load platform-specific automation base, but handlers are dynamic
-if platform.system() == "Windows":
-    from src.automation.windows import WindowsAutomation
-    automation_base = WindowsAutomation()
-elif platform.system() == "Darwin":
-    from src.automation.macos import MacOSAutomation
-    automation_base = MacOSAutomation()
-elif platform.system() == "Linux":
-    from src.automation.linux import LinuxAutomation
-    automation_base = LinuxAutomation()
-else:
-    raise NotImplementedError("Unsupported platform")
+# Load platform-specific automation
+try:
+    if platform.system() == "Windows":
+        from src.automation.windows import WindowsAutomation
+        automation_base = WindowsAutomation()
+    elif platform.system() == "Darwin":
+        from src.automation.macos import MacOSAutomation
+        automation_base = MacOSAutomation()
+    elif platform.system() == "Linux":
+        from src.automation.linux import LinuxAutomation
+        automation_base = LinuxAutomation()
+    else:
+        raise NotImplementedError("Unsupported platform")
+    logger.info(f"Initialized {platform.system()} automation")
+except Exception as e:
+    logger.error(f"Failed to initialize platform automation: {e}")
+    automation_base = None
 
 # Initialize CommandPipeline
-pipeline = CommandPipeline()
+try:
+    pipeline = CommandPipeline()
+    logger.info("CommandPipeline initialized")
+except Exception as e:
+    logger.error(f"Failed to initialize CommandPipeline: {e}")
+    raise
 
 # Define request model for text commands
 class CommandRequest(BaseModel):
@@ -81,7 +92,8 @@ async def process_command(request: CommandRequest):
     try:
         command = request.command
         logger.info(f"Processing text command: {command}")
-        return await pipeline.process(command)
+        result = await pipeline.process(command)
+        return {"command": command, "result": f"Successfully {result}"}
     except Exception as e:
         logger.error(f"Error processing text command: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -98,7 +110,8 @@ async def process_voice(file: UploadFile = File(...)):
         if not command:
             raise HTTPException(status_code=400, detail="Could not transcribe audio")
         logger.info(f"Processing voice command: {command}")
-        return await pipeline.process(command)
+        result = await pipeline.process(command)
+        return {"command": command, "result": f"Successfully {result}"}
     except Exception as e:
         logger.error(f"Error processing voice command: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -114,7 +127,8 @@ async def upload_image(file: UploadFile = File(...)):
         command = "analyze this image"
         context = {"image_data": image_data}
         logger.info("Processing image upload")
-        return await pipeline.process(command, context=context)
+        result = await pipeline.process(command, context=context)
+        return {"command": command, "result": f"Successfully {result}"}
     except Exception as e:
         logger.error(f"Error processing image upload: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -128,18 +142,19 @@ async def websocket_chat(websocket: WebSocket):
         while True:
             command = await websocket.receive_text()
             result = await pipeline.process(command)
-            await websocket.send_json({"result": result})
+            await websocket.send_json({"result": f"Successfully {result}"})
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         await websocket.close()
 
-# Poll voice commands (for continuous listening)
+# Poll voice commands
 @app.get("/voice_commands")
 async def get_voice_commands():
     """Retrieve queued voice commands."""
     command = voice_processor.get_command()
     if command:
-        return await pipeline.process(command)
+        result = await pipeline.process(command)
+        return {"command": command, "result": f"Successfully {result}"}
     return {"result": "No voice command available"}
 
 # Run the app locally

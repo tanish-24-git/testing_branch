@@ -10,6 +10,7 @@ ENABLE_CONTINUOUS_LISTENING: False
 ENABLE_SCREEN_MONITORING: False
 ENABLE_VOICE_APIS: True
 handlers:  # Dynamic handler registration via config
+  window_management: src.automation.window.WindowHandler
   open_app: src.automation.app_launcher.AppLauncherHandler
   browser_control: src.automation.browser.BrowserHandler
   email: src.automation.email.EmailHandler

@@ -9,9 +9,9 @@ class TestVoiceProcessor(unittest.TestCase):
         self.voice_processor = VoiceProcessor(enable_continuous_listening=False)
 
     def test_classify_command(self):
-        self.assertEqual(self.voice_processor.classify_command("open chrome"), "automation")
-        self.assertEqual(self.voice_processor.classify_command("summarize this"), "query")
-        self.assertEqual(self.voice_processor.classify_command("unknown"), "unknown")
+        self.assertEqual(self.voice_processor.classify_command("open chrome"), "open")  # NLP-based, returns first verb
+        self.assertEqual(self.voice_processor.classify_command("summarize this"), "summarize")  # NLP-based
+        self.assertEqual(self.voice_processor.classify_command("unknown"), "unknown")  # Default for unknown
 
     def test_stop(self):
         self.voice_processor.stop()
