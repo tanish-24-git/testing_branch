@@ -10,40 +10,14 @@ logger = logging.getLogger(__name__)
 class WindowsAutomation:
     def __init__(self):
         """Initialize Windows automation module."""
-        self.command_map = {
-            "open chrome": "start chrome",
-            "open notepad": "notepad",
-            "shut down": "shutdown /s /t 0",
-            "order food": "start https://www.ubereats.com",
-            "order clothes": "start https://www.amazon.com/s?k=clothing",
-            "do something on browser": "start https://www.google.com"
-        }
+        pass  # Base class
 
     def execute(self, command: str):
-        """Execute a command on Windows."""
+        """Fallback execute."""
         try:
-            command_lower = command.lower()
-            system_command = self.command_map.get(command_lower)
-            if system_command:
-                subprocess.run(system_command, shell=True)
-                return f"Executed: {command}"
-            elif command_lower.startswith("open http"):
-                subprocess.run(f"start {command_lower[5:]}", shell=True)
-                return f"Opened: {command_lower[5:]}"
-            elif command_lower.startswith("open ") and re.match(r'^open https?://', command_lower):
-                # Handle URLs without needing "open http"
-                url = command_lower[5:]
-                subprocess.run(f"start {url}", shell=True)
-                return f"Opened: {url}"
-            elif command_lower.startswith("open "):
-                app = command_lower[5:]
-                subprocess.run(f"start {app}", shell=True)
-                return f"Opened: {app}"
-            else:
-                logger.warning(f"Unknown command: {command}")
-                return f"Command not recognized: {command}"
+            subprocess.run(command, shell=True)
+            return f"Executed: {command}"
         except Exception as e:
-            logger.error(f"Error executing command: {e}")
             return f"Error: {str(e)}"
 
     def send_email(self, to: str, subject: str, body: str):

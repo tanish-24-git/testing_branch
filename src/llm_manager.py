@@ -32,3 +32,11 @@ class LLMManager:
                 logger.error(f"Error with {client.__class__.__name__}: {e}")
                 continue
         raise Exception("All LLM clients failed")
+
+    async def fallback(self, command, intent, entities, context):
+        """LLM fallback for unmatched commands."""
+        query = f"No handler for intent '{intent}'. Suggest automation code or action for: {command}"
+        suggestion = await self.query(query, context)
+        # Attempt to execute via LLM-generated action (placeholder)
+        result = await self.query(command, context)
+        return {"result": result, "suggestion": f"To teach this, add a handler: {suggestion}"}

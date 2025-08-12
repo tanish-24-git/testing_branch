@@ -1,63 +1,65 @@
 import logging
-from langchain.agents import AgentExecutor, create_react_agent
-from langchain.prompts import PromptTemplate
+import importlib
+import os
 from src.llm_manager import LLMManager
 from src.context_manager import ContextManager
 from src.text_search import TextSearch
 from src.agents import AgenticAI
+from src.utils import extract_intent_entities
+from src.config import config
+from src.pipelines.handlers import BaseHandler
 
 logger = logging.getLogger(__name__)
 
 class CommandPipeline:
-    def __init__(self, automation):
+    def __init__(self):
         self.llm_manager = LLMManager()
         self.context_manager = ContextManager()
         self.text_search = TextSearch()
-        self.automation = automation  # Use the passed automation instance
         self.agentic_ai = AgenticAI()
+        self.head_handler = self._build_chain()
+
+    def _build_chain(self):
+        """Build chain-of-responsibility dynamically from config, plugins, code."""
+        head = BaseHandler()
+        current = head
+
+        # From config
+        for handler in config.get_handlers():
+            current = current.set_next(handler)
+
+        # From plugins dir
+        plugins_dir = "src/plugins"
+        for file in os.listdir(plugins_dir):
+            if file.endswith(".py") and file != "__init__.py":
+                module_name = f"src.plugins.{file[:-3]}"
+                module = importlib.import_module(module_name)
+                for attr in dir(module):
+                    cls = getattr(module, attr)
+                    if isinstance(cls, type) and issubclass(cls, BaseHandler) and cls != BaseHandler:
+                        current = current.set_next(cls())
+
+        # From code (hardcoded if needed)
+        # Add more
+
+        return head
 
     async def process(self, command: str, context=None):
-        """Process command through modular pipeline."""
+        """Process command through pipeline."""
         if context is None:
-            context = self.context_manager.get_context()
+            context = self.context_manager.enrich_context(command)
 
-        # NLP intent detection with Spacy
-        intent = self.classify_command_with_nlp(command)
+        intent, entities = extract_intent_entities(command)
 
-        # Agentic AI for multi-step workflows
-        if intent == "complex":
-            return self.agentic_ai.execute_workflow(command)
+        # Route through chain
+        result = self.head_handler.handle(command, intent, entities, context)
 
-        # General question answering
-        action_type = self.classify_command(command)  # Use existing classify_command for now
-        if action_type == "automation":
-            result = self.automation.execute(command)
-        else:
-            result = await self.llm_manager.query(command, context)
+        if result == "No handler found":
+            return await self.llm_manager.fallback(command, intent, entities, context)
 
-        # Post-process (placeholder for plugins, as none are implemented yet)
-        # result = self.plugins.post_process(result, command)  # Commented out as plugins are undefined
-        return {"command": command, "result": result}
+        # If complex, use agent
+        if "complex" in intent:
+            result = self.agentic_ai.execute_workflow(command)
 
-    def classify_command(self, command):
-        """Classify command type for routing (temporary fallback to VoiceProcessor logic)."""
-        if not command:
-            return "unknown"
-        command_lower = command.lower()
-        if any(keyword in command_lower for keyword in ["open", "change", "reject", "order", "shut down"]):
-            if "summarize" in command_lower and "http" in command_lower:
-                return "web_summary"
-            return "automation"
-        elif any(keyword in command_lower for keyword in ["read", "summarize", "what"]):
-            return "query"
-        elif "search for" in command_lower:
-            return "search"
-        elif "reply to this" in command_lower:
-            return "email_reply"
-        logger.warning(f"Unrecognized command: {command}")
-        return "unknown"
-
-    def classify_command_with_nlp(self, command):
-        """Use Spacy for intent detection (placeholder)."""
-        # Implementation with Spacy (not implemented yet, using fallback)
-        return "intent" if "complex" in command.lower() else self.classify_command(command)
+        # Natural feedback
+        return {"command": command, "result": f"Successfully {result}"}

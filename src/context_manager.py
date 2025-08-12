@@ -11,6 +11,7 @@ import re
 from selenium import webdriver
 from pywinauto import Desktop, Application
 import win32gui  # Add import for Windows API
+import os  # For file type detection
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +90,15 @@ class ContextManager:
             logger.error(f"Error getting active app: {str(e)}")
             return "Unknown Application"  # Fallback
 
+    def get_file_type(self, screen_content):
+        """Detect file type from screen content or active app."""
+        if ".pdf" in screen_content.lower():
+            return "pdf"
+        elif ".txt" in screen_content.lower():
+            return "text"
+        # Add more detections
+        return "unknown"
+
     def is_screen_changed(self, new_img, old_img, threshold=100):
         """Check if the screen has changed significantly."""
         if old_img is None:
@@ -118,9 +128,11 @@ class ContextManager:
                         processed_img = self.preprocess_image(gray_img)
                         text = self.extract_text(processed_img)
                         active_app = self.get_active_app()
+                        file_type = self.get_file_type(text)
                         self.context = {
                             "active_app": active_app,
                             "screen_content": text,
+                            "file_type": file_type,
                             "is_youtube": self.is_youtube_video(text, active_app),
                             "is_pdf": self.is_pdf_open(text, active_app),
                             "is_email": self.is_email_open(text, active_app)
@@ -138,3 +150,9 @@ class ContextManager:
         self.running = False
         if self.selenium_driver:
             self.selenium_driver.quit()
+
+    def enrich_context(self, command):
+        """Enrich context with command-specific details."""
+        context = self.get_context()
+        # Add more enrichment, e.g., parse command for URLs, files
+        return context

@@ -7,6 +7,7 @@ import queue
 import os
 import requests
 from src.settings import settings
+from src.utils import extract_intent_entities  # Import for NLP
 
 logger = logging.getLogger(__name__)
 
@@ -129,22 +130,9 @@ class VoiceProcessor:
             return None
 
     def classify_command(self, command):
-        """Classify command type for routing."""
-        if not command:
-            return "unknown"
-        command_lower = command.lower()
-        if any(keyword in command_lower for keyword in ["open", "change", "reject", "order", "shut down"]):
-            if "summarize" in command_lower and "http" in command_lower:
-                return "web_summary"
-            return "automation"
-        elif any(keyword in command_lower for keyword in ["read", "summarize", "what"]):
-            return "query"
-        elif "search for" in command_lower:
-            return "search"
-        elif "reply to this" in command_lower:
-            return "email_reply"
-        logger.warning(f"Unrecognized command: {command}")
-        return "unknown"
+        """Classify command type for routing using NLP."""
+        intent, entities = extract_intent_entities(command)
+        return intent
 
     def get_command(self):
         """Retrieve a command from the queue."""

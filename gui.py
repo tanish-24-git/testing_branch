@@ -91,13 +91,15 @@ class AssistantGUI:
             return {"error": f"Backend error: {str(e)}"}
 
     def display_response(self, response):
-        """Display the backend response in the output area."""
+        """Display the backend response in the output area with natural feedback."""
         self.output_area.delete(1.0, tk.END)  # Clear previous content (optional)
         if isinstance(response, str):
             self.output_area.insert(tk.END, f"Response: {response}\n\n")
         elif isinstance(response, dict):
             if "error" in response:
                 self.output_area.insert(tk.END, f"Error: {response['error']}\n\n")
+            elif "suggestion" in response:
+                self.output_area.insert(tk.END, f"Feedback: {response.get('result', '')}\nSuggestion: {response['suggestion']}\n\n")
             else:
                 self.output_area.insert(tk.END, f"Command: {response.get('command', '')}\n")
                 self.output_area.insert(tk.END, f"Result: {response.get('result', '')}\n\n")

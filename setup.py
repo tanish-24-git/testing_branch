@@ -31,7 +31,8 @@ setup(
         "selenium==4.23.1",
         "celery==5.4.0",
         "langchain==0.2.10",
-        "sentence-transformers==3.0.1"
+        "sentence-transformers==3.0.1",
+        "pyperclip==1.9.0"
     ],
     author="Your Name",
     author_email="your.email@example.com",

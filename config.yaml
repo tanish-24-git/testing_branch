@@ -9,22 +9,11 @@ server:
 ENABLE_CONTINUOUS_LISTENING: False
 ENABLE_SCREEN_MONITORING: False
 ENABLE_VOICE_APIS: True
-app:
-name: AI Assistant
-version: 0.1.0
-logging:
-level: INFO
-server:
-host: 127.0.0.1
-port: 8000
-ENABLE_CONTINUOUS_LISTENING: False
-ENABLE_SCREEN_MONITORING: False
-ENABLE_VOICE_APIS: True
 handlers:  # Dynamic handler registration via config
-open_app: src.automation.app_launcher.AppLauncherHandler
-browser_control: src.automation.browser.BrowserHandler
-email: src.automation.email.EmailHandler
-file_ops: src.automation.file_ops.FileOpsHandler
-clipboard: src.automation.clipboard.ClipboardHandler
-window_management: src.automation.window.WindowHandler
-gui_actions: src.automation.gui_actions.GUIActionsHandler
+  open_app: src.automation.app_launcher.AppLauncherHandler
+  browser_control: src.automation.browser.BrowserHandler
+  email: src.automation.email.EmailHandler
+  file_ops: src.automation.file_ops.FileOpsHandler
+  clipboard: src.automation.clipboard.ClipboardHandler
+  window_management: src.automation.window.WindowHandler
+  gui_actions: src.automation.gui_actions.GUIActionsHandler

@@ -1,9 +1,16 @@
 import logging
+from src.pipelines.handlers import BaseHandler
 
 logger = logging.getLogger(__name__)
 
-class CodingPlugin:
-    def code_task(self, task):
-        """Perform coding task using GitHub API."""
-        # Implementation...
+class CodingHandler(BaseHandler):
+    def __init__(self):
+        super().__init__()
+        self.intent = "code"
+
+    def can_handle(self, intent, entities, context):
+        return intent == self.intent
+
+    def handle(self, command, intent, entities, context):
+        # Perform coding task using GitHub API (implementation)
         return "Code generated"
