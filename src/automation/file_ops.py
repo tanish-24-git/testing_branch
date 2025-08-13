@@ -1,9 +1,9 @@
-# New file for file operations
+# src/automation/file_ops.py
 import logging
 import os
 import shutil
-import platform  # Added import for platform
-import subprocess  # Added import for subprocess
+import platform
+import subprocess
 
 logger = logging.getLogger(__name__)
 

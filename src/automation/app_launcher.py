@@ -1,4 +1,4 @@
-# New file for app launching handler
+# src/automation/app_launcher.py
 import logging
 import subprocess
 import platform
