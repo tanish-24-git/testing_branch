@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, MagicMock
-from src.automation.chrome_automation import ChromeAutomation
+from automation.browser_automation import ChromeAutomation
 from src.llm_manager import LLMManager
 from src.rag import RAG
 

@@ -1,7 +1,7 @@
 import logging
 from src.llm_manager import LLMManager
 from src.rag import RAG
-from src.automation.chrome_automation import ChromeAutomation
+from automation.browser_automation import BrowserAutomation
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +9,7 @@ class AutomationPipeline:
     def __init__(self, llm_manager: LLMManager, rag: RAG):
         self.llm_manager = llm_manager
         self.rag = rag
-        self.automation = ChromeAutomation()
+        self.automation = BrowserAutomation()
 
     async def process(self, command: str, context: dict = {}):
         # Check for sensitive actions
