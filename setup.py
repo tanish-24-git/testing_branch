@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="ai-assistant",
+    name="chat-bot",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
@@ -11,31 +11,15 @@ setup(
         "httpx==0.27.0",
         "python-dotenv==0.21.0",
         "pyyaml==6.0.1",
-        "mss==9.0.1",
-        "pytesseract==0.3.10",
-        "Pillow==10.4.0",
-        "pywinauto==0.6.8",
-        "numpy==1.26.4",
-        "opencv-python==4.10.0",
-        "speechrecognition==3.10.0",
-        "PyAudio==0.2.14",
-        "scipy==1.13.1",
-        "googlesearch-python==1.2.5",
-        "beautifulsoup4==4.12.3",
         "requests==2.32.3",
-        "youtube-transcript-api==0.6.2",
-        "pdfplumber==0.11.4",
-        "google-auth-oauthlib==1.2.1",
-        "google-api-python-client==2.149.0",
-        "spacy==3.7.2",
-        "selenium==4.23.1",
-        "celery==5.4.0",
         "langchain==0.2.10",
         "sentence-transformers==3.0.1",
-        "pyperclip==1.9.0"
+        "faiss-cpu==1.8.0",
+        "pillow==10.4.0",
+        "groq==0.1.0",
     ],
     author="Your Name",
     author_email="your.email@example.com",
-    description="AI Assistant Backend with Voice and Text Support",
+    description="Simple Chat Bot with RAG and LLMs",
     python_requires=">=3.8"
 )

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 class GPTClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = "gpt-4o"  # Model name for GPT LLM
+        self.model = "gpt-4o"
 
     async def query(self, messages: list[dict]) -> str:
         async with httpx.AsyncClient() as client:

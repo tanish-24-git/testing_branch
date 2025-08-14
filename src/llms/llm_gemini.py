@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 class GeminiClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = "gemini-1.5-pro"  # Model name for Gemini LLM
+        self.model = "gemini-1.5-pro"
 
     async def query(self, messages: list[dict]) -> str:
         async with httpx.AsyncClient() as client:

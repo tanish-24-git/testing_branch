@@ -1,59 +1,44 @@
 import tkinter as tk
 from tkinter import scrolledtext, filedialog
 import requests
-from src.voice_processor import VoiceProcessor
+import json
 
-class AssistantGUI:
+class ChatGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("AI Assistant")
+        self.root.title("Chat Bot")
+
+        # Chat history
+        self.chat_history = scrolledtext.ScrolledText(root, width=60, height=20, wrap=tk.WORD)
+        self.chat_history.pack(pady=10, padx=10)
+        self.chat_history.config(state=tk.DISABLED)  # Read-only
 
         # Text input for commands
         self.command_entry = tk.Entry(root, width=50)
-        self.command_entry.pack(pady=10)
+        self.command_entry.pack(pady=5, padx=10)
 
         # Button to submit text command
-        self.submit_button = tk.Button(root, text="Submit", command=self.submit_command)
+        self.submit_button = tk.Button(root, text="Send", command=self.submit_command)
         self.submit_button.pack(pady=5)
-
-        # Button for voice input
-        self.voice_button = tk.Button(root, text="Voice Input", command=self.voice_input)
-        self.voice_button.pack(pady=5)
 
         # Button for image upload
         self.image_button = tk.Button(root, text="Upload Image", command=self.upload_image)
         self.image_button.pack(pady=5)
 
-        # Text area for output
-        self.output_area = scrolledtext.ScrolledText(root, width=60, height=20)
-        self.output_area.pack(pady=10)
-
-        # Initialize VoiceProcessor
-        self.voice_processor = VoiceProcessor()
-
     def submit_command(self):
         """Handle text command submission."""
         command = self.command_entry.get().strip()
         if command:
-            self.output_area.insert(tk.END, f"Processing: {command}\n")
+            self.append_message("User: " + command)
             response = self.send_command(command)
             self.display_response(response)
             self.command_entry.delete(0, tk.END)  # Clear input field
-
-    def voice_input(self):
-        """Handle voice command input."""
-        self.output_area.insert(tk.END, "Listening for voice input...\n")
-        command = self.voice_processor.capture_voice()
-        if command:
-            self.output_area.insert(tk.END, f"Recognized: {command}\n")
-            response = self.send_command(command)
-            self.display_response(response)
 
     def upload_image(self):
         """Handle image upload."""
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.png *.gif")])
         if file_path:
-            self.output_area.insert(tk.END, f"Uploading image: {file_path}\n")
+            self.append_message("Uploading image: " + file_path)
             response = self.send_image(file_path)
             self.display_response(response)
 
@@ -63,13 +48,10 @@ class AssistantGUI:
             response = requests.post(
                 "http://localhost:8000/command",
                 json={"command": command},
-                timeout=5  # Temporary timeout setting
+                timeout=5
             )
             response.raise_for_status()
-            try:
-                return response.json()  # Attempt to parse JSON
-            except ValueError:
-                return response.text  # Fallback to text if not JSON
+            return response.json()
         except requests.RequestException as e:
             return {"error": f"Backend error: {str(e)}"}
 
@@ -83,31 +65,22 @@ class AssistantGUI:
                     files=files
                 )
             response.raise_for_status()
-            try:
-                return response.json()  # Attempt to parse JSON
-            except ValueError:
-                return response.text  # Fallback to text if not JSON
+            return response.json()
         except requests.RequestException as e:
             return {"error": f"Backend error: {str(e)}"}
 
+    def append_message(self, message):
+        """Append message to chat history."""
+        self.chat_history.config(state=tk.NORMAL)
+        self.chat_history.insert(tk.END, message + "\n\n")
+        self.chat_history.config(state=tk.DISABLED)
+        self.chat_history.see(tk.END)  # Scroll to the end
+
     def display_response(self, response):
-        """Display the backend response in the output area with natural feedback."""
-        self.output_area.delete(1.0, tk.END)  # Clear previous content (optional)
-        if isinstance(response, str):
-            self.output_area.insert(tk.END, f"Response: {response}\n\n")
-        elif isinstance(response, dict):
-            if "error" in response:
-                self.output_area.insert(tk.END, f"Error: {response['error']}\n\n")
-            elif "suggestion" in response:
-                self.output_area.insert(tk.END, f"Feedback: {response.get('result', '')}\nSuggestion: {response['suggestion']}\n\n")
-            else:
-                self.output_area.insert(tk.END, f"Command: {response.get('command', '')}\n")
-                self.output_area.insert(tk.END, f"Result: {response.get('result', '')}\n\n")
-        else:
-            self.output_area.insert(tk.END, f"Unexpected response: {response}\n\n")
-        self.output_area.see(tk.END)  # Scroll to the end
+        """Display the backend response in the chat history."""
+        self.append_message("Bot: " + json.dumps(response, indent=2))
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = AssistantGUI(root)
+    app = ChatGUI(root)
     root.mainloop()
