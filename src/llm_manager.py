@@ -12,12 +12,18 @@ class LLMManager:
         self.clients = []
         if settings.grok_api_key:
             self.clients.append(GrokClient(settings.grok_api_key))
+            logger.info("GrokClient initialized")
         if settings.openai_api_key:
             self.clients.append(GPTClient(settings.openai_api_key))
+            logger.info("GPTClient initialized")
         if settings.gemini_api_key:
             self.clients.append(GeminiClient(settings.gemini_api_key))
+            logger.info("GeminiClient initialized")
         if settings.groq_api_key:
             self.clients.append(GroqClient(settings.groq_api_key))
+            logger.info("GroqClient initialized")
+        if not self.clients:
+            logger.warning("No LLM clients initialized. Check API keys in .env")
 
     async def query_all(self, messages: list[dict]) -> dict:
         responses = {}
@@ -36,8 +42,10 @@ class LLMManager:
             {"role": "user", "content": command}
         ]
         responses = await self.query_all(messages)
-        # Compare and select best (simple: choose the longest response)
         if responses:
+            # Select the best (e.g., longest response)
             best_key = max(responses, key=lambda k: len(responses[k]))
             return responses[best_key]
-        raise Exception("All LLM clients failed")
+        else:
+            # Fallback instead of raise
+            return "Sorry, I couldn't get a response from any available LLMs. Please check your API keys, quotas, and credits."

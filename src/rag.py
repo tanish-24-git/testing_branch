@@ -1,3 +1,4 @@
+from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import DirectoryLoader
@@ -15,7 +16,7 @@ class RAG:
         if not os.path.exists(docs_dir):
             os.makedirs(docs_dir)
             logger.warning(f"Created empty {docs_dir} directory as it did not exist")
-        loader = DirectoryLoader(docs_dir)
+        loader = DirectoryLoader(docs_dir, glob="**/*.txt", loader_cls=TextLoader)
         documents = loader.load()
         if not documents:
             logger.warning("No documents found in docs directory, using placeholder")

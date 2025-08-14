@@ -18,7 +18,7 @@ setup(
         "sentence-transformers==3.0.1",
         "faiss-cpu==1.8.0",
         "pillow==10.4.0",
-        "groq==0.1.0",
+        "groq==0.31.0",
         "unstructured==0.15.0",
     ],
     author="tanish",
