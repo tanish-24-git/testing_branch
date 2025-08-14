@@ -1,9 +1,8 @@
 import sys
 import os
-# Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, WebSocket
+from fastapi import FastAPI, HTTPException, UploadFile, File, WebSocket, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
@@ -29,28 +28,36 @@ app.add_middleware(
 class CommandRequest(BaseModel):
     command: str
 
+# Global instances (unchanged)
 llm_manager = LLMManager()
 rag = RAG()
 
+# Dependency getters for injection and reusability
+def get_rag() -> RAG:
+    return rag
+
+def get_llm_manager() -> LLMManager:
+    return llm_manager
+
 @app.post("/command")
-async def process_command(request: CommandRequest):
+async def process_command(request: CommandRequest, rag_inst: RAG = Depends(get_rag), llm_inst: LLMManager = Depends(get_llm_manager)):
     command = request.command
     logger.info(f"Processing command: {command}")
-    rag_response = rag.retrieve(command)
-    result = await llm_manager.process(command, {"rag": rag_response})
+    rag_response = rag_inst.retrieve(command)
+    result = await llm_inst.process(command, {"rag": rag_response})
     return {"command": command, "result": result}
 
 @app.post("/upload_image")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(file: UploadFile = File(...), llm_inst: LLMManager = Depends(get_llm_manager)):
     logger.info("Processing image upload")
     image_data = await file.read()
     mime_type = file.content_type or "image/jpeg"
     command = "Describe this image"
-    result = await llm_manager.process(command, {"image_data": image_data, "mime_type": mime_type})
+    result = await llm_inst.process(command, {"image_data": image_data, "mime_type": mime_type})
     return {"result": result}
 
 @app.websocket("/ws/chat")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, rag_inst: RAG = Depends(get_rag), llm_inst: LLMManager = Depends(get_llm_manager)):
     await websocket.accept()
     try:
         while True:
@@ -60,8 +67,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_text("Error: Empty command")
                 continue
             logger.info(f"WebSocket received command: {command}")
-            rag_response = rag.retrieve(command)
-            result = await llm_manager.process(command, {"rag": rag_response})
+            rag_response = rag_inst.retrieve(command)
+            result = await llm_inst.process(command, {"rag": rag_response})
             await websocket.send_text(result)
     except Exception as e:
         logger.error(f"WebSocket error: {str(e)}")

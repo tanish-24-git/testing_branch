@@ -1,13 +1,15 @@
 import logging
 import httpx
 import re
+from .llm_base import LLMBase  # Added import for base class
+from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
-class GeminiClient:
+class GeminiClient(LLMBase):
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = "gemini-1.5-flash"  # Valid current model; change if needed
+        self.model = settings.gemini_model  # Made configurable
         self.supports_vision = True
 
     async def query(self, messages: list[dict]) -> str:

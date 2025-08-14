@@ -1,17 +1,19 @@
 import logging
 import asyncio
 import httpx
+from typing import List, Dict, Tuple
 from src.llms.llm_grok import GrokClient
 from src.llms.llm_gpt import GPTClient
 from src.llms.llm_gemini import GeminiClient
 from src.llms.llm_groq import GroqClient
+from src.llms.llm_base import LLMBase  # Added for type hinting
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
 class LLMManager:
     def __init__(self):
-        self.clients = []
+        self.clients: List[LLMBase] = []  # Typed with LLMBase for modularity
         if settings.groq_api_key:
             self.clients.append(GroqClient(settings.groq_api_key))
             logger.info("GroqClient initialized")
@@ -26,7 +28,7 @@ class LLMManager:
         #     self.clients.append(GPTClient(settings.openai_api_key))
         #     logger.info("GPTClient initialized")
 
-    async def query_with_retry(self, client, messages: list[dict]) -> tuple[str, str]:
+    async def query_with_retry(self, client: LLMBase, messages: List[Dict[str, any]]) -> Tuple[str, str]:
         """Query a client with retry logic for rate limits."""
         max_retries = 3
         for attempt in range(max_retries):
@@ -43,7 +45,7 @@ class LLMManager:
                 return None, f"Error with {type(client).__name__}: {error_str}"
         return None, f"Failed after {max_retries} retries for {type(client).__name__}"
 
-    async def query_all(self, messages: list[dict], is_vision: bool) -> dict:
+    async def query_all(self, messages: List[Dict[str, any]], is_vision: bool) -> Dict[str, str]:
         responses = {}
         errors = []
         for client in self.clients:
@@ -59,7 +61,7 @@ class LLMManager:
             logger.error("\n".join(errors))
         return responses
 
-    async def process(self, command: str, context: dict) -> str:
+    async def process(self, command: str, context: Dict[str, any]) -> str:
         image_data = context.get("image_data")
         mime_type = context.get("mime_type", "image/jpeg")
         is_vision = bool(image_data)
