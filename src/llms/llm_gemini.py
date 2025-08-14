@@ -1,29 +1,29 @@
 import logging
 import httpx
 import re
-from .llm_base import LLMBase  # Added import for base class
+from .llm_base import LLMBase
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
 class GeminiClient(LLMBase):
+    supports_vision = True
+
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = settings.gemini_model  # Made configurable
-        self.supports_vision = True
+        self.model = settings.gemini_model
 
     async def query(self, messages: list[dict]) -> str:
-        # Convert messages to Gemini format: contents with user/model roles
         contents = []
         system_content = ""
         for msg in messages:
             if msg["role"] == "system":
-                system_content += msg["content"] + "\n"  # Prepend system to first user
+                system_content += msg["content"] + "\n"
             elif msg["role"] == "user":
                 parts = []
                 if system_content:
                     parts.append({"text": system_content})
-                    system_content = ""  # Clear after using
+                    system_content = ""
                 content = msg["content"]
                 if isinstance(content, str):
                     parts.append({"text": content})
@@ -42,18 +42,13 @@ class GeminiClient(LLMBase):
                                     "data": match.group("data")
                                 }
                             })
-                else:
-                    raise ValueError("Unsupported content type for user message")
                 contents.append({"role": "user", "parts": parts})
             elif msg["role"] == "assistant":
-                contents.append({"role": "model", "parts": [{"text": msg["content"]}]})  # Gemini uses "model" for assistant
-
-        if not contents:
-            raise ValueError("No valid user messages provided")
-
+                contents.append({"role": "model", "parts": [{"text": msg["content"]}]})
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
+                headers={"x-goog-api-key": self.api_key},
                 json={"contents": contents}
             )
             if response.status_code != 200:

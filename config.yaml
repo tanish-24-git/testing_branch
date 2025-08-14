@@ -7,4 +7,9 @@ server:
   host: 127.0.0.1
   port: 8000
 rag:
-  docs_dir: docs  # Directory for RAG documents
+  docs_dir: docs
+automation:
+  browser: chrome  # Browser type
+  headless: true   # Run in headless mode
+  timeout: 30000   # Browser timeout in ms
+  # Changed: Added automation section for Chrome config

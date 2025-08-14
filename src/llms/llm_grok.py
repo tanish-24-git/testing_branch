@@ -1,15 +1,16 @@
 import logging
 import httpx
-from .llm_base import LLMBase  # Added import for base class
+from .llm_base import LLMBase
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
 class GrokClient(LLMBase):
+    supports_vision = False
+
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = settings.grok_model  # Made configurable
-        self.supports_vision = False  # Assuming no vision support for grok-beta; change model if needed
+        self.model = settings.grok_model
 
     async def query(self, messages: list[dict]) -> str:
         async with httpx.AsyncClient() as client:

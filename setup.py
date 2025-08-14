@@ -18,11 +18,13 @@ setup(
         "sentence-transformers==3.0.1",
         "faiss-cpu==1.8.0",
         "pillow==10.4.0",
-        "groq==0.31.0",
-        "unstructured==0.15.0",
+        "groq==0.1.0",
+        "playwright==1.46.0",
+        "pytest==8.3.2",
+        "pytest-asyncio==0.23.8",
     ],
-    author="tanish",
+    author="Your Name",
     author_email="your.email@example.com",
-    description="Simple Chat Bot with RAG and LLMs",
+    description="Chat Bot with RAG and Chrome Automation",
     python_requires=">=3.8"
 )

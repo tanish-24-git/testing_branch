@@ -1,32 +1,44 @@
 import logging
 import asyncio
-import httpx
 from typing import List, Dict, Tuple
+from src.llms.llm_base import LLMBase
 from src.llms.llm_grok import GrokClient
 from src.llms.llm_gpt import GPTClient
 from src.llms.llm_gemini import GeminiClient
 from src.llms.llm_groq import GroqClient
-from src.llms.llm_base import LLMBase  # Added for type hinting
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
 class LLMManager:
     def __init__(self):
-        self.clients: List[LLMBase] = []  # Typed with LLMBase for modularity
-        if settings.groq_api_key:
-            self.clients.append(GroqClient(settings.groq_api_key))
-            logger.info("GroqClient initialized")
+        self.clients: List[LLMBase] = []
+        if settings.grok_api_key:
+            try:
+                self.clients.append(GrokClient(settings.grok_api_key))
+                logger.info("GrokClient initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize GrokClient: {str(e)}")
+        if settings.openai_api_key:
+            try:
+                self.clients.append(GPTClient(settings.openai_api_key))
+                logger.info("GPTClient initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize GPTClient: {str(e)}")
         if settings.gemini_api_key:
-            self.clients.append(GeminiClient(settings.gemini_api_key))
-            logger.info("GeminiClient initialized")
-        # Temporarily disable other LLMs to avoid quota errors
-        # if settings.grok_api_key:
-        #     self.clients.append(GrokClient(settings.grok_api_key))
-        #     logger.info("GrokClient initialized")
-        # if settings.openai_api_key:
-        #     self.clients.append(GPTClient(settings.openai_api_key))
-        #     logger.info("GPTClient initialized")
+            try:
+                self.clients.append(GeminiClient(settings.gemini_api_key))
+                logger.info("GeminiClient initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize GeminiClient: {str(e)}")
+        if settings.groq_api_key:
+            try:
+                self.clients.append(GroqClient(settings.groq_api_key))
+                logger.info("GroqClient initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize GroqClient: {str(e)}")
+        if not self.clients:
+            logger.warning("No LLM clients initialized. Ensure valid API keys are provided.")
 
     async def query_with_retry(self, client: LLMBase, messages: List[Dict[str, any]]) -> Tuple[str, str]:
         """Query a client with retry logic for rate limits."""
@@ -38,14 +50,14 @@ class LLMManager:
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str:  # Rate limit error
-                    retry_delay = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
-                    logger.warning(f"Rate limit for {type(client).__name__}, retrying in {retry_delay}s (attempt {attempt + 1}/{max_retries})")
+                    retry_delay = (2 ** attempt) * 2  # Changed: Increased backoff (2s, 4s, 8s)
+                    logger.warning(f"Rate limit for {type(client).__name__}, retrying in {retry_delay}s")
                     await asyncio.sleep(retry_delay)
                     continue
                 return None, f"Error with {type(client).__name__}: {error_str}"
         return None, f"Failed after {max_retries} retries for {type(client).__name__}"
 
-    async def query_all(self, messages: List[Dict[str, any]], is_vision: bool) -> Dict[str, str]:
+    async def query_all(self, messages: List[Dict[str, any]], is_vision: bool = False) -> Dict[str, str]:
         responses = {}
         errors = []
         for client in self.clients:
@@ -80,13 +92,6 @@ class LLMManager:
         ]
         responses = await self.query_all(messages, is_vision)
         if responses:
-            # Select the best (e.g., longest response)
             best_key = max(responses, key=lambda k: len(responses[k]))
             return responses[best_key]
-        else:
-            # Fallback with detailed error
-            return "Sorry, I couldn't get a response from any available LLMs. Ensure API keys have sufficient credits/quota:\n" + \
-                   "- Groq: Verify API key and model availability at https://console.groq.com\n" + \
-                   "- Grok: Check credits at https://console.x.ai\n" + \
-                   "- OpenAI: Check quota at https://platform.openai.com\n" + \
-                   "- Gemini: Check quota at https://ai.google.dev"
+        return "No valid responses from LLMs. Check API keys, quotas, or model availability."

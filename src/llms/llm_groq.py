@@ -1,15 +1,16 @@
 import logging
 import httpx
-from .llm_base import LLMBase  # Added import for base class
+from .llm_base import LLMBase
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
 class GroqClient(LLMBase):
+    supports_vision = False
+
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = settings.groq_model  # Made configurable
-        self.supports_vision = False  # This model is text-only; change if using a vision model
+        self.model = settings.groq_model
 
     async def query(self, messages: list[dict]) -> str:
         async with httpx.AsyncClient() as client:
