@@ -6,7 +6,10 @@ python-dotenv==0.21.0
 pyyaml==6.0.1
 requests==2.32.3
 langchain==0.2.10
+langchain-community==0.2.10
+langchain-huggingface==0.0.3
 sentence-transformers==3.0.1
-faiss-cpu==1.8.0  # For RAG vector store
-pillow==10.4.0  # For image processing
-groq==0.1.0  # Added for Groq LLM
+faiss-cpu==1.8.0
+pillow==10.4.0
+groq==0.1.0
+unstructured==0.15.0  # Added for DirectoryLoader

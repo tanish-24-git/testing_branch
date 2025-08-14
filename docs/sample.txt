@@ -1,0 +1,3 @@
+Sample document for RAG testing.
+This is a test document to ensure the retrieval-augmented generation works.
+It contains information about Python, a popular programming language used for web development, data science, and automation.
