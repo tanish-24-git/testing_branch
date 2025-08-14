@@ -7,7 +7,7 @@
 ├── docs
 │   └── sample.txt
 ├── src
-│   ├── __init__.py        # Create this if missing
+│   ├── __init__.py        
 │   ├── config.py
 │   ├── llm_manager.py
 │   ├── logger_config.py
