@@ -6,7 +6,8 @@ logger = logging.getLogger(__name__)
 class GroqClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = "llama-3.1-70b-versatile"  # Example model
+        self.model = "llama-3.3-70b-versatile"  # Updated to recommended model
+        self.supports_vision = False  # This model is text-only; change if using a vision model
 
     async def query(self, messages: list[dict]) -> str:
         async with httpx.AsyncClient() as client:

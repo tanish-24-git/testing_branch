@@ -1,5 +1,6 @@
 import logging
 import httpx
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -7,6 +8,7 @@ class GeminiClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.model = "gemini-1.5-pro"  # Valid current model; change if needed
+        self.supports_vision = True
 
     async def query(self, messages: list[dict]) -> str:
         # Convert messages to Gemini format: contents with user/model roles
@@ -16,9 +18,31 @@ class GeminiClient:
             if msg["role"] == "system":
                 system_content += msg["content"] + "\n"  # Prepend system to first user
             elif msg["role"] == "user":
-                content = system_content + msg["content"] if system_content else msg["content"]
-                contents.append({"role": "user", "parts": [{"text": content}]})
-                system_content = ""  # Clear after using
+                parts = []
+                if system_content:
+                    parts.append({"text": system_content})
+                    system_content = ""  # Clear after using
+                content = msg["content"]
+                if isinstance(content, str):
+                    parts.append({"text": content})
+                elif isinstance(content, list):
+                    for item in content:
+                        if item["type"] == "text":
+                            parts.append({"text": item["text"]})
+                        elif item["type"] == "image_url":
+                            url = item["image_url"]["url"]
+                            match = re.match(r"^data:(?P<mime>[^;]+);base64,(?P<data>.*)$", url)
+                            if not match:
+                                raise ValueError("Invalid image data URL")
+                            parts.append({
+                                "inline_data": {
+                                    "mime_type": match.group("mime"),
+                                    "data": match.group("data")
+                                }
+                            })
+                else:
+                    raise ValueError("Unsupported content type for user message")
+                contents.append({"role": "user", "parts": parts})
             elif msg["role"] == "assistant":
                 contents.append({"role": "model", "parts": [{"text": msg["content"]}]})  # Gemini uses "model" for assistant
 
@@ -27,8 +51,7 @@ class GeminiClient:
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
-                headers={"x-goog-api-key": self.api_key},
+                f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}",
                 json={"contents": contents}
             )
             if response.status_code != 200:

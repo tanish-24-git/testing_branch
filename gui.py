@@ -48,7 +48,7 @@ class ChatGUI:
             response = requests.post(
                 "http://localhost:8000/command",
                 json={"command": command},
-                timeout=5
+                timeout=10  # Increased timeout to 10 seconds
             )
             response.raise_for_status()
             return response.json()
@@ -62,7 +62,8 @@ class ChatGUI:
                 files = {"file": f}
                 response = requests.post(
                     "http://localhost:8000/upload_image",
-                    files=files
+                    files=files,
+                    timeout=10  # Increased timeout to 10 seconds
                 )
             response.raise_for_status()
             return response.json()

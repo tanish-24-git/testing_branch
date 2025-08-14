@@ -7,6 +7,7 @@ class GPTClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.model = "gpt-4o"
+        self.supports_vision = True
 
     async def query(self, messages: list[dict]) -> str:
         async with httpx.AsyncClient() as client:

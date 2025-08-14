@@ -33,9 +33,10 @@ async def process_command(request: CommandRequest):
 async def upload_image(file: UploadFile = File(...)):
     logger.info("Processing image upload")
     image_data = await file.read()
+    mime_type = file.content_type or "image/jpeg"
     # Placeholder for image processing (e.g., captioning)
     command = "Describe this image"
-    result = await llm_manager.process(command, {"image_data": image_data})
+    result = await llm_manager.process(command, {"image_data": image_data, "mime_type": mime_type})
     return {"result": result}
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ class GrokClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.model = "grok-beta"
+        self.supports_vision = False  # Assuming no vision support for grok-beta; change model if needed
 
     async def query(self, messages: list[dict]) -> str:
         async with httpx.AsyncClient() as client:
