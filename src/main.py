@@ -1,8 +1,10 @@
 import sys
 import os
+# Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import logging
 from src.llm_manager import LLMManager
@@ -14,6 +16,15 @@ setup_logger()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Chat Bot Backend")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class CommandRequest(BaseModel):
     command: str
@@ -34,10 +45,29 @@ async def upload_image(file: UploadFile = File(...)):
     logger.info("Processing image upload")
     image_data = await file.read()
     mime_type = file.content_type or "image/jpeg"
-    # Placeholder for image processing (e.g., captioning)
     command = "Describe this image"
     result = await llm_manager.process(command, {"image_data": image_data, "mime_type": mime_type})
     return {"result": result}
+
+@app.websocket("/ws/chat")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            command = data.strip()
+            if not command:
+                await websocket.send_text("Error: Empty command")
+                continue
+            logger.info(f"WebSocket received command: {command}")
+            rag_response = rag.retrieve(command)
+            result = await llm_manager.process(command, {"rag": rag_response})
+            await websocket.send_text(result)
+    except Exception as e:
+        logger.error(f"WebSocket error: {str(e)}")
+        await websocket.send_text(f"Error: {str(e)}")
+    finally:
+        await websocket.close()
 
 if __name__ == "__main__":
     import uvicorn

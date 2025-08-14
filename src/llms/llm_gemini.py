@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 class GeminiClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = "gemini-1.5-pro"  # Valid current model; change if needed
+        self.model = "gemini-1.5-flash"  # Valid current model; change if needed
         self.supports_vision = True
 
     async def query(self, messages: list[dict]) -> str:

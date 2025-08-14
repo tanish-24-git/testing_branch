@@ -15,8 +15,9 @@ class LLMManager:
         if settings.groq_api_key:
             self.clients.append(GroqClient(settings.groq_api_key))
             logger.info("GroqClient initialized")
-        else:
-            logger.warning("No Groq API key found in .env")
+        if settings.gemini_api_key:
+            self.clients.append(GeminiClient(settings.gemini_api_key))
+            logger.info("GeminiClient initialized")
         # Temporarily disable other LLMs to avoid quota errors
         # if settings.grok_api_key:
         #     self.clients.append(GrokClient(settings.grok_api_key))
@@ -24,9 +25,6 @@ class LLMManager:
         # if settings.openai_api_key:
         #     self.clients.append(GPTClient(settings.openai_api_key))
         #     logger.info("GPTClient initialized")
-        # if settings.gemini_api_key:
-        #     self.clients.append(GeminiClient(settings.gemini_api_key))
-        #     logger.info("GeminiClient initialized")
 
     async def query_with_retry(self, client, messages: list[dict]) -> tuple[str, str]:
         """Query a client with retry logic for rate limits."""
