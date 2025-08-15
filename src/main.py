@@ -25,7 +25,7 @@ class ImageRequest(BaseModel):
 
 llm_manager = LLMManager()
 rag = RAG()
-comparison_pipeline = ComparisonPipeline(llm_manager, rag)
+comparison_pipeline = ComparisonPipeline(llm_manager)
 automation_pipeline = AutomationPipeline(llm_manager, rag)  # New: Automation pipeline
 
 @app.post("/command")
