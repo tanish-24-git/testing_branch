@@ -1,15 +1,79 @@
 app:
-  name: Chat Bot
-  version: 0.1.0
+  name: Enhanced AI Chat Bot
+  version: 2.0.0
+  description: AI Agent with Email Intelligence & Desktop Automation
+  
 logging:
   level: INFO
+  format: detailed
+  file: assistant.log
+  max_size_mb: 100
+  backup_count: 5
+
 server:
   host: 127.0.0.1
   port: 8000
+  workers: 1
+  timeout: 300
+
 rag:
   docs_dir: docs
+  embedding_model: all-MiniLM-L6-v2
+  chunk_size: 1000
+  chunk_overlap: 200
+  max_results: 5
+
 automation:
-  browser: chrome  # Browser type
-  headless: true   # Run in headless mode
-  timeout: 30000   # Browser timeout in ms
-  # Changed: Added automation section for Chrome config
+  browser: chrome
+  headless: true
+  timeout: 30000
+  screenshot_dir: screenshots
+  download_dir: downloads
+  
+  # Desktop automation settings
+  desktop:
+    enabled: true
+    safety_delay: 1.0
+    failsafe: true
+    screenshot_on_action: false
+    
+  # Email automation settings  
+  email:
+    check_interval: 300
+    auto_reply: false
+    max_history: 50
+    require_confirmation: true
+    
+agents:
+  # Email agent configuration
+  email:
+    enabled: true
+    context_window: 10
+    sentiment_analysis: true
+    priority_detection: true
+    auto_reply_templates: templates/email/
+    
+  # Automation agent configuration
+  automation:
+    enabled: true
+    max_steps: 20
+    safety_checks: true
+    require_confirmation_for:
+      - send_email
+      - delete_file  
+      - system_command
+      - financial_transaction
+
+# Security settings
+security:
+  enable_encryption: true
+  max_email_recipients: 10
+  max_file_size_mb: 25
+  data_retention_days: 30
+  
+# Performance settings
+performance:
+  enable_caching: true
+  cache_ttl: 3600
+  max_concurrent_tasks: 5
+  enable_compression: true

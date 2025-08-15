@@ -1,4 +1,4 @@
-# UPDATED requirements.txt - Enhanced dependencies with browser automation and SMTP email
+# Enhanced Requirements with Email Intelligence & Desktop Automation
 
 # Core FastAPI and web framework
 fastapi==0.112.0
@@ -28,12 +28,21 @@ groq==0.1.0
 openai==1.35.0
 google-generativeai==0.5.0
 
-# Browser automation - ENHANCED
+# Browser automation
 playwright==1.46.0
 beautifulsoup4==4.12.3
 
-# Email automation - ADDED
+# Desktop automation - NEW
+pyautogui==0.9.54
+pygetwindow==0.0.9
+pynput==1.7.6
+psutil==5.9.0
+pyperclip==1.8.2
+
+# Email automation - ENHANCED
 aiosmtplib==3.0.1
+imapclient==2.3.1
+email-reply-parser==0.5.12
 
 # Testing framework
 pytest==8.3.2
@@ -48,3 +57,15 @@ cryptography==42.0.0
 # Performance optimization
 asyncio-throttle==1.0.2
 cachetools==5.3.1
+
+# Async email processing
+aioimaplib==1.0.1
+
+# JSON processing
+orjson==3.9.0
+
+# Date/time handling
+python-dateutil==2.8.2
+
+# File handling
+aiofiles==23.2.1
