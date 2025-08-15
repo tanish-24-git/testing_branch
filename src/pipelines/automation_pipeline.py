@@ -11,7 +11,7 @@ from src.llm_manager import LLMManager
 from src.rag import RAG
 
 # FIXED: Correct import path
-from src.automation.browser_automation import browserAutomation
+from automation.browser.browser_automation import browserAutomation
 
 logger = logging.getLogger(__name__)
 

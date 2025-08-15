@@ -1,6 +1,6 @@
 # Automation Package
-from .browser_automation import browserAutomation
-from .desktop_automation import DesktopAutomation
+from .browser.browser_automation import browserAutomation
+from .desktop.desktop_automation import DesktopAutomation
 from .email_automation import EmailAutomation
 
 __all__ = ['browserAutomation', 'DesktopAutomation', 'EmailAutomation']

@@ -8,8 +8,8 @@ from typing import Dict, Any
 from datetime import datetime
 
 from .base_agent import BaseAgent
-from ..automation.browser_automation import browserAutomation
-from ..automation.desktop_automation import DesktopAutomation
+from ..automation.browser.browser_automation import browserAutomation
+from ..automation.desktop.desktop_automation import DesktopAutomation
 
 logger = logging.getLogger(__name__)
 

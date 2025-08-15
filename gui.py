@@ -327,7 +327,7 @@ class EnhancedChatGUI:
             response = requests.post(
                 "http://localhost:8000/command",
                 json={"command": f"Compose a professional email with subject: {subject}"},
-                timeout=30
+                timeout=200
             )
             if response.status_code == 200:
                 result = response.json().get("result", "")
@@ -384,7 +384,7 @@ class EnhancedChatGUI:
             response = requests.post(
                 "http://localhost:8000/command",
                 json={"command": f"Check and fix grammar in this text: {text}"},
-                timeout=30
+                timeout=300
             )
             if response.status_code == 200:
                 result = response.json().get("result", "")
@@ -426,7 +426,7 @@ class EnhancedChatGUI:
             response = requests.post(
                 "http://localhost:8000/desktop_automation",
                 json={"command": command},
-                timeout=60
+                timeout=30
             )
             response.raise_for_status()
             result = response.json()

@@ -28,9 +28,10 @@ from src.agents.email_agent import EmailAgent
 from src.agents.automation_agent import AutomationAgent
 
 # Import automation modules
-from src.automation.browser_automation import browserAutomation
-from src.automation.desktop_automation import DesktopAutomation
+from src.automation.browser.browser_automation import browserAutomation
+from src.automation.desktop.desktop_automation import DesktopAutomation
 from src.automation.email_automation import EmailAutomation
+
 
 # Setup logging
 setup_logger()
