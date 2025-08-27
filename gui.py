@@ -327,7 +327,7 @@ class EnhancedChatGUI:
             response = requests.post(
                 "http://localhost:8000/command",
                 json={"command": f"Compose a professional email with subject: {subject}"},
-                timeout=200
+                timeout=30
             )
             if response.status_code == 200:
                 result = response.json().get("result", "")
@@ -384,7 +384,7 @@ class EnhancedChatGUI:
             response = requests.post(
                 "http://localhost:8000/command",
                 json={"command": f"Check and fix grammar in this text: {text}"},
-                timeout=300
+                timeout=30
             )
             if response.status_code == 200:
                 result = response.json().get("result", "")
@@ -426,7 +426,7 @@ class EnhancedChatGUI:
             response = requests.post(
                 "http://localhost:8000/desktop_automation",
                 json={"command": command},
-                timeout=30
+                timeout=60
             )
             response.raise_for_status()
             result = response.json()
@@ -452,7 +452,6 @@ class EnhancedChatGUI:
         # Schedule next update
         self.root.after(30000, self.update_system_status)  # Update every 30 seconds
         
-    # Original methods (enhanced)
     def append_message(self, message):
         """Add message to chat with timestamp and formatting"""
         timestamp = datetime.now().strftime("%H:%M:%S")
@@ -493,7 +492,11 @@ class EnhancedChatGUI:
             self.api_status.config(text="🟢 API")
             
     def display_response(self, response):
-        self.append_message("🤖 Bot: " + json.dumps(response, indent=2))
+        if isinstance(response, dict):
+            pretty_response = json.dumps(response, indent=2)
+        else:
+            pretty_response = str(response)
+        self.append_message("🤖 Bot: " + pretty_response)
 
     def submit_command(self):
         cmd = self.command_entry.get().strip()

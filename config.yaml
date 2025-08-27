@@ -30,12 +30,6 @@ automation:
   screenshot_dir: screenshots
   download_dir: downloads
   
-  # Desktop automation settings
-  desktop:
-    enabled: true
-    safety_delay: 1.0
-    failsafe: true
-    screenshot_on_action: false
     
   # Email automation settings  
   email:

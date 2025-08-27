@@ -9,7 +9,6 @@ from datetime import datetime
 
 from .base_agent import BaseAgent
 from ..automation.browser.browser_automation import browserAutomation
-from ..automation.desktop.desktop_automation import DesktopAutomation
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,6 @@ class AutomationAgent(BaseAgent):
         try:
             # Initialize automation modules
             self.browser_automation = browserAutomation()
-            self.desktop_automation = DesktopAutomation()
             
             # Test capabilities
             browser_available = True  # Browser automation is always available (with fallbacks)

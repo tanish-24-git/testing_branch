@@ -29,7 +29,6 @@ from src.agents.automation_agent import AutomationAgent
 
 # Import automation modules
 from src.automation.browser.browser_automation import browserAutomation
-from src.automation.desktop.desktop_automation import DesktopAutomation
 from src.automation.email_automation import EmailAutomation
 
 
@@ -68,9 +67,6 @@ class EmailRequest(BaseModel):
     body: str
     auto_enhance: Optional[bool] = True
 
-class DesktopRequest(BaseModel):
-    command: str
-    safety_check: Optional[bool] = True
 
 # Global instances
 llm_manager = None
@@ -98,7 +94,6 @@ async def startup_event():
         # Initialize automation modules
         logger.info("Initializing automation modules...")
         browser_automation = browserAutomation()
-        desktop_automation = DesktopAutomation()
         email_automation = EmailAutomation()
         
         # Initialize agent manager
@@ -245,41 +240,7 @@ async def run_automation(request: CommandRequest):
         logger.error(f"Automation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/desktop_automation")
-async def run_desktop_automation(request: DesktopRequest):
-    """Run desktop automation commands"""
-    try:
-        logger.info(f"Processing desktop automation: {request.command}")
-        
-        if not desktop_automation.is_available():
-            raise HTTPException(
-                status_code=503, 
-                detail="Desktop automation not available. Install required packages: pip install pyautogui pygetwindow pynput psutil"
-            )
-        
-        # Safety check for potentially dangerous commands
-        if request.safety_check:
-            dangerous_keywords = ['delete', 'format', 'rm -rf', 'shutdown', 'restart']
-            if any(keyword in request.command.lower() for keyword in dangerous_keywords):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Potentially dangerous command blocked. Disable safety_check to override."
-                )
-        
-        result = await desktop_automation.execute_command(request.command, llm_manager, rag)
-        
-        return {
-            "command": request.command,
-            "result": result,
-            "safety_check": request.safety_check,
-            "timestamp": asyncio.get_event_loop().time()
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Desktop automation failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/email")
 async def send_email(request: EmailRequest):

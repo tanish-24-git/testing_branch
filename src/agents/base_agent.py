@@ -238,34 +238,38 @@ class AgentManager:
         return {name: agent.get_status() for name, agent in self.agents.items()}
     
     async def route_command(self, command: str, preferred_agent: str = None) -> str:
-        """Route command to appropriate agent"""
         # If preferred agent specified, use it
         if preferred_agent and preferred_agent in self.agents:
             agent = self.agents[preferred_agent]
             if agent.is_active:
                 return await agent.process_command(command)
-        
+
         # Otherwise, try to determine best agent for command
         best_agent = self._determine_best_agent(command)
         if best_agent:
             return await best_agent.process_command(command)
-        
-        return "No suitable agent found for this command"
+
+        # If no suitable agent, delegate to LLM
+        if self.llm_manager:
+            return await self.llm_manager.process(command, {})
+
+        return "No suitable agent or LLM found for this command"
+
+
     
     def _determine_best_agent(self, command: str) -> Optional[BaseAgent]:
-        """Determine best agent for a command"""
         command_lower = command.lower()
-        
+    
         # Simple keyword-based routing
         if any(keyword in command_lower for keyword in ['email', 'mail', 'message']):
             return self.get_agent('email_agent')
-        
+    
         if any(keyword in command_lower for keyword in ['browser', 'web', 'open', 'navigate']):
             return self.get_agent('automation_agent')
-        
+    
         if any(keyword in command_lower for keyword in ['desktop', 'window', 'click', 'type']):
             return self.get_agent('automation_agent')
-        
-        # Default to first active agent
-        active_agents = self.get_active_agents()
-        return active_agents[0] if active_agents else None
+    
+        # --------- CHANGE: Do NOT default/fallback to first active agent ---------
+        # If no keywords matched, return None to indicate "no agent" (so LLM handles it)
+        return None
