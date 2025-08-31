@@ -1,45 +1,25 @@
 ```
-Directory structure:
-└── tanish-24-git-testing_branch/
-    ├── Readme.md
-    ├── config.yaml
-    ├── gui.py
-    ├── logger_config.py
-    ├── requirements.txt
-    ├── setup.py
-    ├── test.py
-    ├── docs/
-    │   ├── automation_guide.md
-    │   ├── env.md
-    │   ├── playwright-setup-guide.md
-    │   └── sample.txt
-    └── src/
-        ├── config.py
-        ├── llm_manager.py
-        ├── logger_config.py
-        ├── main.py
-        ├── pipelines.py
-        ├── rag.py
-        ├── settings.py
-        ├── automation/
-        │   ├── __init__.py
-        │   └── browser_automation.py
-        ├── llms/
-        │   ├── __init__.py
-        │   ├── llm_base.py
-        │   ├── llm_gemini.py
-        │   ├── llm_gpt.py
-        │   ├── llm_grok.py
-        │   └── llm_groq.py
-        ├── pipelines/
-        │   ├── __init__.py
-        │   ├── automation_pipeline.py
-        │   └── comparison_pipeline.py
-        ├── storage/
-        │   ├── __init__.py
-        │   └── db_interface.py
-        └── tests/
-            ├── __init__.py
-            └── test_automation.py
-
+cleaned_ai_agent_project/
+├── README.md                  # Updated with Gmail setup
+├── requirements.txt           # Cleaned, added Google libs
+├── setup.py                   # Packaging
+├── .env.template              # LLM keys only (Gmail uses credentials.json)
+├── config.yaml                # Simplified (no RAG/browser)
+├── credentials.json           # Place your Google OAuth JSON here (not in Git)
+└── src/
+    ├── __init__.py
+    ├── main.py                # FastAPI server
+    ├── config.py              # Config loader
+    ├── settings.py            # Env settings
+    ├── llm_manager.py         # Only Gemini/Groq
+    ├── agents/                # Agents
+    │   ├── __init__.py
+    │   ├── agent_manager.py   # Manages agents
+    │   ├── base_agent.py      # Base class
+    │   └── email_agent.py     # Modular Gmail API integration
+    └── llms/                  # LLMs
+        ├── __init__.py
+        ├── llm_base.py
+        ├── llm_gemini.py
+        └── llm_groq.py
 ```

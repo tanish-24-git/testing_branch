@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="chat-bot",
-    version="0.1.0",
+    name="ai-agent",
+    version="3.0.0",
     packages=find_packages(),
     install_requires=[
         "fastapi==0.112.0",
@@ -11,20 +11,13 @@ setup(
         "httpx==0.27.0",
         "python-dotenv==0.21.0",
         "pyyaml==6.0.1",
-        "requests==2.32.3",
-        "langchain==0.2.10",
-        "langchain-community==0.2.10",
-        "langchain-huggingface==0.0.3",
-        "sentence-transformers==3.0.1",
-        "faiss-cpu==1.8.0",
-        "pillow==10.4.0",
+        "google-api-python-client==2.111.0",
+        "google-auth-httplib2==0.2.0",
+        "google-auth-oauthlib==1.2.0",
+        "google-generativeai==0.5.0",
         "groq==0.1.0",
-        "playwright==1.46.0",
-        "pytest==8.3.2",
-        "pytest-asyncio==0.23.8",
     ],
     author="Your Name",
-    author_email="your.email@example.com",
-    description="Chat Bot with RAG and Chrome Automation",
+    description="AI Agent for Gmail Automation",
     python_requires=">=3.8"
 )
