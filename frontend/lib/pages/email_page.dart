@@ -1,7 +1,17 @@
-// FILE: frontend/lib/pages/email_page.dart
+// FILE: frontend/lib/pages/email_page.dart (fixed baseUrl to 127.0.0.1:8001)
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+String getBaseUrl() {
+  // For Windows desktop, use 'http://127.0.0.1:8001' (fixed to valid localhost IP)
+  if (Platform.isWindows) {
+    return 'http://127.0.0.1:8001';
+  } else {
+    return 'http://localhost:8001';
+  }
+}
 
 class EmailPage extends StatefulWidget {
   const EmailPage({super.key});
@@ -35,7 +45,7 @@ class _EmailPageState extends State<EmailPage> {
     final String label = _selectedIndex == 0 ? 'INBOX' : 'SENT';
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8000/email/check?count=10&label=$label'),
+        Uri.parse('${getBaseUrl()}/email/check?count=10&label=$label'),
       );
 
       if (response.statusCode == 200) {
@@ -48,6 +58,7 @@ class _EmailPageState extends State<EmailPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      print('HTTP Error in Email Fetch: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -65,7 +76,7 @@ class _EmailPageState extends State<EmailPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8000/command'),
+        Uri.parse('${getBaseUrl()}/command'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'command': 'Generate email body: $prompt'}),
       );
@@ -78,6 +89,7 @@ class _EmailPageState extends State<EmailPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      print('HTTP Error in Generate Body: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -97,7 +109,7 @@ class _EmailPageState extends State<EmailPage> {
 
     try {
       final response = await http.post(
-        Uri.parse(isSchedule ? 'http://localhost:8000/email/schedule' : 'http://localhost:8000/email/send'),
+        Uri.parse(isSchedule ? '${getBaseUrl()}/email/schedule' : '${getBaseUrl()}/email/send'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
@@ -110,13 +122,14 @@ class _EmailPageState extends State<EmailPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      print('HTTP Error in Send Email: $e');
     }
   }
 
   Future<void> _autoReply(String emailId) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8000/email/auto-reply'),
+        Uri.parse('${getBaseUrl()}/email/auto-reply'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email_id': emailId}),
       );
@@ -128,6 +141,7 @@ class _EmailPageState extends State<EmailPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      print('HTTP Error in Auto Reply: $e');
     }
   }
 

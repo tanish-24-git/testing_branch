@@ -1,8 +1,18 @@
-// FILE: frontend/lib/pages/chat_page.dart
+// FILE: frontend/lib/pages/chat_page.dart (fixed baseUrl to 127.0.0.1:8001)
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
+
+String getBaseUrl() {
+  // For Windows desktop, use 'http://127.0.0.1:8001' (fixed to valid localhost IP)
+  if (Platform.isWindows) {
+    return 'http://127.0.0.1:8001';
+  } else {
+    return 'http://localhost:8001';
+  }
+}
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -29,7 +39,7 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8000/chat'),
+        Uri.parse('${getBaseUrl()}/chat'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'messages': _messages}),
       );
@@ -48,6 +58,7 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _messages.add({'role': 'assistant', 'content': 'Error: $e'});
       });
+      print('HTTP Error in Chat: $e');
     } finally {
       setState(() {
         _isLoading = false;
