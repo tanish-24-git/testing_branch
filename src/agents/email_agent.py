@@ -10,7 +10,7 @@ import asyncio
 import logging
 import re
 from email.mime.text import MIMEText
-from typing import Dict
+from typing import Dict, Optional, List
 from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,8 @@ class EmailAgent(BaseAgent):
             if match:
                 return await self._send_email(match.group(1), match.group(2), match.group(3))
         elif "check emails" in command_lower:
-            return await self._receive_emails(10)
+            emails = await self._receive_emails(10)
+            return "\n".join([f"From: {e['from']} - Subject: {e['subject']}" for e in emails]) if emails else "No emails"
         elif "schedule email" in command_lower:
             match = re.search(r"schedule email to (\S+) with subject (.+) and body (.+) at (.+)", command, re.I)
             if match:
@@ -66,18 +67,27 @@ class EmailAgent(BaseAgent):
             logger.error(str(e))
             return "Send failed"
 
-    async def _receive_emails(self, count: int) -> str:
+    async def _receive_emails(self, count: int, label: Optional[str] = None) -> List[Dict]:
         try:
-            results = self.service.users().messages().list(userId='me', maxResults=count).execute()
+            query_params = {'userId': 'me', 'maxResults': count}
+            if label:
+                query_params['labelIds'] = [label.upper()]  # Labels like 'INBOX' or 'SENT' are uppercase
+            results = self.service.users().messages().list(**query_params).execute()
             messages = results.get('messages', [])
-            summaries = []
+            emails = []
             for msg in messages:
-                msg_data = self.service.users().messages().get(userId='me', id=msg['id']).execute()
-                summaries.append(f"Subject: {msg_data['payload']['headers'][0]['value']}")
-            return "\n".join(summaries) if summaries else "No emails"
+                msg_data = self.service.users().messages().get(userId='me', id=msg['id'], format='minimal').execute()
+                headers = {h['name']: h['value'] for h in msg_data.get('payload', {}).get('headers', [])}
+                emails.append({
+                    'id': msg['id'],
+                    'from': headers.get('From'),
+                    'subject': headers.get('Subject'),
+                    'snippet': msg_data.get('snippet')
+                })
+            return emails
         except HttpError as e:
             logger.error(str(e))
-            return "Receive failed"
+            return []
 
     async def _schedule_email(self, to: str, subject: str, body: str, time_str: str) -> str:
         try:
