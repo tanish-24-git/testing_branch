@@ -1,8 +1,9 @@
+# FILE: src/main.py (updated with /chat endpoint and label param)
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import logging
 from dotenv import load_dotenv
 import asyncio
@@ -14,7 +15,7 @@ from .llm_manager import LLMManager
 from .agents.agent_manager import AgentManager
 
 load_dotenv()
-logging.basicConfig(level=config['logging']['level'], filename=config['logging']['file'])
+logging.basicConfig(level=config.get('logging', {}).get('level', 'INFO'), filename=config.get('logging', {}).get('file', 'agent.log'))
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Agent API")
@@ -45,6 +46,9 @@ class CommandRequest(BaseModel):
     command: str
     context: Optional[Dict] = None
 
+class ChatRequest(BaseModel):
+    messages: List[Dict[str, str]]
+
 class EmailRequest(BaseModel):
     to: str
     subject: str
@@ -64,6 +68,14 @@ async def process_command(req: CommandRequest):
         logger.error(str(e))
         raise HTTPException(500, str(e))
 
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    try:
+        return {"response": await llm_manager.chat(req.messages)}
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(500, str(e))
+
 @app.post("/email/send")
 async def send_email(req: EmailRequest):
     try:
@@ -75,10 +87,10 @@ async def send_email(req: EmailRequest):
         raise HTTPException(500, str(e))
 
 @app.get("/email/check")
-async def check_emails(count: int = 10):
+async def check_emails(count: int = 10, label: Optional[str] = None):
     try:
         email_agent = agent_manager.get_agent("email")
-        return {"emails": await email_agent._receive_emails(count)}
+        return {"emails": await email_agent._receive_emails(count, label)}
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(500, str(e))
@@ -102,4 +114,4 @@ async def auto_reply(req: AutoReplyRequest):
         raise HTTPException(500, str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=config['server']['host'], port=config['server']['port'])
+    uvicorn.run(app, host=config.get('server', {}).get('host', '0.0.0.0'), port=config.get('server', {}).get('port', 8000))

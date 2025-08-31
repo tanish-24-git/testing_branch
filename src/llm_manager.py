@@ -1,3 +1,4 @@
+# FILE: src/llm_manager.py (updated with chat method)
 import logging
 import asyncio
 from typing import List, Dict, Tuple
@@ -39,6 +40,16 @@ class LLMManager:
             {"role": "system", "content": str(context)},
             {"role": "user", "content": command}
         ]
+        responses = {}
+        for client in self.clients:
+            result, error = await self.query_with_retry(client, messages)
+            if result:
+                responses[type(client).__name__] = result
+        if responses:
+            return max(responses.values(), key=len)
+        return "No valid responses from LLMs"
+
+    async def chat(self, messages: List[Dict]) -> str:
         responses = {}
         for client in self.clients:
             result, error = await self.query_with_retry(client, messages)
