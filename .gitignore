@@ -253,3 +253,22 @@ docker-compose.override.yml
 # Test output
 # --------------
 test-output/
+
+
+
+# Flutter/Dart/Pub stuff
+.dart_tool/
+.packages
+.pub-cache/
+build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
