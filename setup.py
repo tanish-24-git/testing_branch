@@ -1,3 +1,4 @@
+
 from setuptools import setup, find_packages
 
 setup(
@@ -16,8 +17,15 @@ setup(
         "google-auth-oauthlib==1.2.0",
         "google-generativeai==0.5.0",
         "groq==0.1.0",
+        "duckduckgo-search==6.3.0",
+        "beautifulsoup4==4.12.3",
+        "lxml==5.3.0",
+        "youtube-transcript-api==0.6.2",
+        "openai-whisper==20231117",
+        "pytube==15.0.0",
+        "requests==2.32.3",
     ],
     author="Your Name",
-    description="AI Agent for Gmail Automation",
+    description="AI Agent for Gmail and Browser Automation",
     python_requires=">=3.8"
 )

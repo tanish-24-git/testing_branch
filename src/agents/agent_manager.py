@@ -2,6 +2,7 @@ from typing import Dict
 import logging
 from .base_agent import BaseAgent
 from .email_agent import EmailAgent
+from .browser.browser_agent import BrowserAgent  # New import
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ class AgentManager:
 
     def register_agents(self):
         self.agents["email"] = EmailAgent(self.llm_manager, {})
+        self.agents["browser"] = BrowserAgent(self.llm_manager, {})  # Register BrowserAgent
 
     async def start_all(self):
         for agent in self.agents.values():
@@ -25,7 +27,11 @@ class AgentManager:
         return self.agents.get(name)
 
     async def route_command(self, command: str, context: Dict = None) -> str:
-        # Simple routing: All to email agent for now
+        # Simple routing: Check for browser keywords, else email or LLM
+        if any(word in command.lower() for word in ["search", "open", "download", "summarize"]):
+            agent = self.get_agent("browser")
+            if agent:
+                return await agent.process_command(command, context)
         agent = self.get_agent("email")
         if agent:
             return await agent.process_command(command, context)

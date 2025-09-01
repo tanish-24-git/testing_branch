@@ -1,4 +1,5 @@
-# FILE: src/main.py (updated with /chat endpoint and label param)
+
+# FILE: src/main.py (updated /chat to route if last message contains command keywords)
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -49,6 +50,9 @@ class CommandRequest(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[Dict[str, str]]
 
+class BrowserRequest(BaseModel):
+    query: str
+
 class EmailRequest(BaseModel):
     to: str
     subject: str
@@ -70,8 +74,25 @@ async def process_command(req: CommandRequest):
 
 @app.post("/chat")
 async def chat(req: ChatRequest):
+    if not req.messages:
+        raise HTTPException(400, "No messages")
+    last_message = req.messages[-1].get('content', "").lower()
     try:
-        return {"response": await llm_manager.chat(req.messages)}
+        # Route to agents if last message looks like a command
+        command_keywords = ["search", "open", "download", "summarize", "send email", "check emails", "schedule email", "auto-reply"]
+        if any(keyword in last_message for keyword in command_keywords):
+            return {"response": await agent_manager.route_command(req.messages[-1]['content'])}
+        else:
+            return {"response": await llm_manager.chat(req.messages)}
+    except Exception as e:
+        logger.error(str(e))
+        raise HTTPException(500, str(e))
+
+@app.post("/browser")
+async def browser(req: BrowserRequest):
+    try:
+        browser_agent = agent_manager.get_agent("browser")
+        return {"result": await browser_agent.process_command(req.query)}
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(500, str(e))

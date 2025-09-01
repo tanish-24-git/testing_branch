@@ -1,3 +1,4 @@
+
 app:
   name: AI Agent
   version: 3.0.0
@@ -15,3 +16,5 @@ agents:
     enabled: true
     auto_reply: true
     check_interval: 300
+  browser:
+    enabled: true

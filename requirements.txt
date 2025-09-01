@@ -1,3 +1,6 @@
+================================================
+FILE: requirements.txt
+================================================
 fastapi==0.112.0
 uvicorn==0.30.5
 pydantic==2.8.2
@@ -9,3 +12,10 @@ google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
 google-generativeai==0.5.0  # For Gemini
 groq==0.1.0  # For Groq
+duckduckgo-search==6.3.0    # For search
+beautifulsoup4==4.12.3      # For web scraping
+lxml==5.3.0                 # Parser for BeautifulSoup
+youtube-transcript-api==0.6.2 # For YouTube transcripts
+openai-whisper==20231117    # For local audio transcription
+pytube==15.0.0              # For YouTube audio download
+requests==2.32.3            # For HTTP requests (ipinfo, etc.)

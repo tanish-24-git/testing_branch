@@ -1,12 +1,12 @@
-// FILE: frontend/lib/pages/chat_page.dart (fixed baseUrl to 127.0.0.1:8001)
+// FILE: frontend/lib/pages/chat_page.dart (updated with Markdown for onTapLink)
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 String getBaseUrl() {
-  // For Windows desktop, use 'http://127.0.0.1:8001' (fixed to valid localhost IP)
   if (Platform.isWindows) {
     return 'http://127.0.0.1:8001';
   } else {
@@ -88,12 +88,21 @@ class _ChatPageState extends State<ChatPage> {
                       color: msg['role'] == 'user' ? Colors.yellow[700] : Colors.grey[800],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: MarkdownBody(
+                    child: Markdown(
                       data: msg['content']!,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       styleSheet: MarkdownStyleSheet(
                         code: const TextStyle(backgroundColor: Colors.black54, fontFamily: 'monospace'),
-                        codeblockDecoration: BoxDecoration(color: Colors.black87),
                       ),
+                      onTapLink: (text, href, title) async {
+                        if (href != null) {
+                          final uri = Uri.parse(href);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri);
+                          }
+                        }
+                      },
                     ),
                   ),
                 );

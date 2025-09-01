@@ -1,4 +1,5 @@
-// FILE: frontend/lib/pages/home_page.dart
+
+// FILE: frontend/lib/pages/home_page.dart (removed Browser button)
 import 'package:flutter/material.dart';
 import 'package:frontend/pages/chat_page.dart';
 import 'package:frontend/pages/email_page.dart';
