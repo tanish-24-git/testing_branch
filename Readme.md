@@ -23,9 +23,10 @@ cleaned_ai_agent_project/
     │       ├── browser_agent.py  # Orchestrates browser tasks, routes based on intent, returns markdown
     │       ├── intent_classifier.py  # Classifies query intent using LLM
     │       ├── search_handler.py     # Handles search queries using DuckDuckGo, appends location from ipinfo
-    │       ├── direct_handler.py     # Handles direct site opening by searching official link, updated query to f"{site_name}"
+    │       ├── direct_handler.py     # Handles direct site opening by searching official link
     │       ├── download_handler.py   # Handles software downloads, uses LLM for install steps
-    │       └── summarizer_handler.py # Handles content summarization (web/YouTube), with Whisper fallback, optional YouTube API enrich, changed parser to 'html.parser'
+    │       ├── youtube_summarizer.py # New: Handles YouTube video summarization, detailed with Whisper fallback
+    │       └── webpage_summarizer.py # New: Handles webpage summarization, detailed content extraction
     └── llms/                  # LLMs
         ├── __init__.py
         ├── llm_base.py
