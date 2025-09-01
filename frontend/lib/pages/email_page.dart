@@ -33,7 +33,6 @@ class _EmailPageState extends State<EmailPage> {
   Future<void> _fetchEmails() async {
     setState(() => _isLoading = true);
 
-    // Map tab index to backend labels
     final labels = ["INBOX", "SENT", "SCHEDULED", "TRASH"];
     final String label = labels[_selectedIndex];
 
@@ -57,7 +56,7 @@ class _EmailPageState extends State<EmailPage> {
     }
   }
 
-  Future<void> _autoReply(String emailId) async {
+  Future<void> _replyWithAI(String emailId) async {
     try {
       final response = await http.post(
         Uri.parse('${getBaseUrl()}/email/auto-reply'),
@@ -66,11 +65,21 @@ class _EmailPageState extends State<EmailPage> {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Auto-reply sent successfully')));
+        final data = jsonDecode(response.body);
+        final aiDraft = data['draft'] ?? "Generated reply text...";
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ComposeEmailPage(
+              initialBody: aiDraft,
+              replyingTo: emailId,
+            ),
+          ),
+        );
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: ${response.body}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${response.body}')));
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -78,7 +87,6 @@ class _EmailPageState extends State<EmailPage> {
     }
   }
 
-  // Build email list UI with animation
   Widget buildEmailList() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -86,6 +94,7 @@ class _EmailPageState extends State<EmailPage> {
     if (_emails.isEmpty) {
       return const Center(child: Text("No emails found."));
     }
+
     return ListView.builder(
       itemCount: _emails.length,
       itemBuilder: (context, index) {
@@ -110,8 +119,8 @@ class _EmailPageState extends State<EmailPage> {
               subtitle: Text(
                   '${email['from'] ?? 'Unknown'} - ${email['snippet'] ?? ''}'),
               trailing: IconButton(
-                icon: const Icon(Icons.reply),
-                onPressed: () => _autoReply(email['id']),
+                icon: const Icon(Icons.reply, color: Colors.blue),
+                onPressed: () => _replyWithAI(email['id']),
               ),
             ),
           ),
@@ -130,45 +139,76 @@ class _EmailPageState extends State<EmailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Email")),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 400),
-        transitionBuilder: (child, animation) {
-          final slideAnimation = Tween<Offset>(
-            begin: const Offset(0, 0.05),
-            end: Offset.zero,
-          ).animate(animation);
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(position: slideAnimation, child: child),
-          );
-        },
-        child: buildEmailList(),
+      body: Row(
+        children: [
+          // Left NavigationRail
+          NavigationRail(
+            backgroundColor: Colors.grey[900],
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() => _selectedIndex = index);
+              _fetchEmails();
+            },
+            labelType: NavigationRailLabelType.all,
+            unselectedIconTheme: const IconThemeData(color: Colors.white70),
+            selectedIconTheme: const IconThemeData(color: Colors.white),
+            selectedLabelTextStyle: const TextStyle(color: Colors.white),
+            unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.inbox),
+                label: Text("Inbox"),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.send),
+                label: Text("Sent"),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.schedule),
+                label: Text("Scheduled"),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.delete),
+                label: Text("Trash"),
+              ),
+            ],
+          ),
+
+          // Main email list
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              transitionBuilder: (child, animation) {
+                final slideAnimation = Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(animation);
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(position: slideAnimation, child: child),
+                );
+              },
+              child: buildEmailList(),
+            ),
+          ),
+        ],
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: _openComposePage,
-        child: const Icon(Icons.add),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() => _selectedIndex = index);
-          _fetchEmails();
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.inbox), label: "Inbox"),
-          BottomNavigationBarItem(icon: Icon(Icons.send), label: "Sent"),
-          BottomNavigationBarItem(icon: Icon(Icons.schedule), label: "Scheduled"),
-          BottomNavigationBarItem(icon: Icon(Icons.delete), label: "Trash"),
-        ],
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 }
 
-// ✅ Separate Compose Page with backend integration
+// ✅ Compose Page with AI-generated drafts support
 class ComposeEmailPage extends StatefulWidget {
-  const ComposeEmailPage({super.key});
+  final String? initialBody;
+  final String? replyingTo;
+
+  const ComposeEmailPage({super.key, this.initialBody, this.replyingTo});
 
   @override
   State<ComposeEmailPage> createState() => _ComposeEmailPageState();
@@ -182,6 +222,14 @@ class _ComposeEmailPageState extends State<ComposeEmailPage> {
   final TextEditingController _scheduleTimeController = TextEditingController();
 
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialBody != null) {
+      _bodyController.text = widget.initialBody!;
+    }
+  }
 
   Future<void> _generateBodyWithLLM() async {
     final String prompt = _promptController.text.trim();
@@ -231,7 +279,7 @@ class _ComposeEmailPageState extends State<ComposeEmailPage> {
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Success')));
-        Navigator.pop(context); // close after success
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: ${response.body}')));
@@ -253,30 +301,35 @@ class _ComposeEmailPageState extends State<ComposeEmailPage> {
               child: ListView(
                 children: [
                   TextField(
-                      controller: _toController,
-                      decoration: const InputDecoration(labelText: 'To')),
+                    controller: _toController,
+                    decoration: const InputDecoration(labelText: 'To'),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
-                      controller: _subjectController,
-                      decoration: const InputDecoration(labelText: 'Subject')),
+                    controller: _subjectController,
+                    decoration: const InputDecoration(labelText: 'Subject'),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
-                      controller: _bodyController,
-                      decoration: const InputDecoration(labelText: 'Body'),
-                      maxLines: 5),
+                    controller: _bodyController,
+                    decoration: const InputDecoration(labelText: 'Body'),
+                    maxLines: 6,
+                  ),
                   const SizedBox(height: 8),
                   TextField(
-                      controller: _promptController,
-                      decoration: const InputDecoration(
-                          labelText: 'LLM Prompt for Body')),
+                    controller: _promptController,
+                    decoration: const InputDecoration(
+                        labelText: 'LLM Prompt for Body'),
+                  ),
                   ElevatedButton(
                       onPressed: _generateBodyWithLLM,
                       child: const Text('Generate with AI')),
                   const SizedBox(height: 8),
                   TextField(
-                      controller: _scheduleTimeController,
-                      decoration: const InputDecoration(
-                          labelText: 'Schedule Time (ISO)')),
+                    controller: _scheduleTimeController,
+                    decoration: const InputDecoration(
+                        labelText: 'Schedule Time (ISO)'),
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -288,7 +341,7 @@ class _ComposeEmailPageState extends State<ComposeEmailPage> {
                           onPressed: () => _sendEmail(isSchedule: true),
                           child: const Text('Schedule')),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
