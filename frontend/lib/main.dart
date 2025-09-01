@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AI Agent UI',
       theme: appTheme,
+      debugShowCheckedModeBanner: false,
       home: const HomePage(),
     );
   }

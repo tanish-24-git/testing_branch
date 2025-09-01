@@ -1,7 +1,8 @@
-// FILE: frontend/lib/pages/chat_page.dart (updated with Markdown for onTapLink)
+// FILE: frontend/lib/pages/chat_page.dart
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -66,12 +67,17 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  void _copyMessage(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Message copied")),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chatbot'),
-      ),
+      appBar: AppBar(title: const Text('Chatbot')),
       body: Column(
         children: [
           Expanded(
@@ -79,30 +85,54 @@ class _ChatPageState extends State<ChatPage> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
-                return Align(
-                  alignment: msg['role'] == 'user' ? Alignment.centerRight : Alignment.centerLeft,
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  transitionBuilder: (child, animation) {
+                    final offsetAnimation = Tween<Offset>(
+                      begin: msg['role'] == 'user' ? const Offset(0.2, 0) : const Offset(-0.2, 0),
+                      end: Offset.zero,
+                    ).animate(animation);
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(position: offsetAnimation, child: child),
+                    );
+                  },
                   child: Container(
+                    key: ValueKey(msg['content']),
                     margin: const EdgeInsets.all(8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: msg['role'] == 'user' ? Colors.yellow[700] : Colors.grey[800],
-                      borderRadius: BorderRadius.circular(8),
+                      color: msg['role'] == 'user' ? Colors.yellow[700] : Colors.grey[850],
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Markdown(
-                      data: msg['content']!,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      styleSheet: MarkdownStyleSheet(
-                        code: const TextStyle(backgroundColor: Colors.black54, fontFamily: 'monospace'),
-                      ),
-                      onTapLink: (text, href, title) async {
-                        if (href != null) {
-                          final uri = Uri.parse(href);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri);
-                          }
-                        }
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Markdown(
+                          data: msg['content']!,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          styleSheet: MarkdownStyleSheet(
+                            code: const TextStyle(backgroundColor: Colors.black54, fontFamily: 'monospace'),
+                          ),
+                          onTapLink: (text, href, title) async {
+                            if (href != null) {
+                              final uri = Uri.parse(href);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              }
+                            }
+                          },
+                        ),
+                        if (msg['role'] == 'assistant')
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: IconButton(
+                              icon: const Icon(Icons.copy, size: 18, color: Colors.white70),
+                              onPressed: () => _copyMessage(msg['content']!),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 );
@@ -117,13 +147,12 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Type your message...',
-                    ),
+                    decoration: const InputDecoration(hintText: 'Type your message...'),
+                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(Icons.send, color: Colors.yellow),
                   onPressed: _isLoading ? null : _sendMessage,
                 ),
               ],
